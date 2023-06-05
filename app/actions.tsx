@@ -47,7 +47,7 @@ async function getSpotifyToken() {
     body: `grant_type=client_credentials&client_id=${SPOTIFY_CLIENT_ID}&client_secret=${SPOTIFY_CLIENT_SECRET}`,
   });
   const { access_token } = await response.json();
-  // await localStorage.setItem("token", access_token);
+
   cookies().set({
     name: "token",
     value: access_token,
@@ -109,7 +109,9 @@ export default function Form() {
           className="mb-2"
           placeholder="請輸入描述，例如：舞曲 英文 女歌手"
         />
-        <button type="submit" className="p-2 bg-slate-400 hover:opacity-80">送出</button>
+        <button type="submit" className="p-2 bg-slate-400 hover:opacity-80">
+          送出
+        </button>
       </form>
       {id && (
         <iframe

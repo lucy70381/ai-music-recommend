@@ -97,7 +97,7 @@ export default function Form() {
   }
   const id = cookieStore.get("id")?.value;
   return (
-    <main>
+    <div className="w-min-[354px]">
       <h1 className="text-center text-green-500 text-4xl font-bold mb-4">
         AI 音樂推薦
       </h1>
@@ -124,6 +124,6 @@ export default function Form() {
           loading="lazy"
         ></iframe>
       )}
-    </main>
+    </div>
   );
 }

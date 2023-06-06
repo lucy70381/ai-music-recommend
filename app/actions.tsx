@@ -77,6 +77,8 @@ async function getRecommendSong(formData: FormData) {
         content: formData.get("description") as string,
       },
     ],
+    temperature: 2,
+    n: 1,
     max_tokens: Number(OPENAI_MAX_TOKENS),
   });
 

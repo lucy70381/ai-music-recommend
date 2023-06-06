@@ -1,6 +1,7 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { Configuration, OpenAIApi } from "openai";
 import { cookies } from "next/headers";
+import { log } from "console";
 
 const {
   OPENAI_API_KEY,
@@ -20,12 +21,56 @@ async function getRecommendSong(formData: FormData) {
     model: "gpt-3.5-turbo",
     messages: [
       {
-        role: "user",
+        role: "system",
         content: OPENAI_CONTENT ?? "",
       },
       {
-        role: "system",
-        content: "好的，我會遵守這個規則。",
+        role: "user",
+        content: "派對",
+      },
+      {
+        role: "assistant",
+        content: "Miley Cyrus - Party in the USA",
+      },
+      {
+        role: "user",
+        content: "派對",
+      },
+      {
+        role: "assistant",
+        content: "Jolin Tsai - 舞力全開",
+      },
+      {
+        role: "user",
+        content: "派對",
+      },
+      {
+        role: "assistant",
+        content: "P!nk-Get This Party Started",
+      },
+      {
+        role: "user",
+        content: "派對",
+      },
+      {
+        role: "assistant",
+        content: "Bruno Mars - 24K Magic",
+      },
+      {
+        role: "user",
+        content: "國歌",
+      },
+      {
+        role: "assistant",
+        content: "Glocal Orchestra - Taiwan",
+      },
+      {
+        role: "user",
+        content: "跳舞",
+      },
+      {
+        role: "assistant",
+        content: "Calvin Harris, Dua Lipa - One Kiss",
       },
       {
         role: "user",

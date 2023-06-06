@@ -97,11 +97,11 @@ export default function Form() {
   }
   const id = cookieStore.get("id")?.value;
   return (
-    <>
+    <div>
       <h1 className="text-center text-green-500 text-4xl font-bold mb-4">
         AI 音樂推薦
       </h1>
-      <form action={chatAI} className="mb-4 min-w-[354px]">
+      <form action={chatAI} className="mb-4 flex flex-col min-w-[354px]">
         <input
           type="text"
           id="description"
@@ -124,6 +124,6 @@ export default function Form() {
           loading="lazy"
         ></iframe>
       )}
-    </>
+    </div>
   );
 }

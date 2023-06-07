@@ -1,7 +1,8 @@
-import { revalidatePath, revalidateTag } from "next/cache";
-import { Configuration, OpenAIApi } from "openai";
-import { cookies } from "next/headers";
-import { log } from "console";
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { Configuration, OpenAIApi } from 'openai';
+import { cookies } from 'next/headers';
+import { isRedirectError } from 'next/dist/client/components/redirect';
+import { redirect } from 'next/navigation';
 
 const {
   OPENAI_API_KEY,
@@ -18,63 +19,63 @@ const openai = new OpenAIApi(configuration);
 
 async function getRecommendSong(formData: FormData) {
   const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: 'gpt-3.5-turbo',
     messages: [
       {
-        role: "system",
-        content: OPENAI_CONTENT ?? "",
+        role: 'system',
+        content: OPENAI_CONTENT ?? '',
       },
       {
-        role: "user",
-        content: "派對",
+        role: 'user',
+        content: '派對',
       },
       {
-        role: "assistant",
-        content: "Miley Cyrus - Party in the USA",
+        role: 'assistant',
+        content: 'Miley Cyrus - Party in the USA',
       },
       {
-        role: "user",
-        content: "派對",
+        role: 'user',
+        content: '派對',
       },
       {
-        role: "assistant",
-        content: "Jolin Tsai - 舞力全開",
+        role: 'assistant',
+        content: 'Jolin Tsai - 舞力全開',
       },
       {
-        role: "user",
-        content: "派對",
+        role: 'user',
+        content: '派對',
       },
       {
-        role: "assistant",
-        content: "P!nk-Get This Party Started",
+        role: 'assistant',
+        content: 'P!nk-Get This Party Started',
       },
       {
-        role: "user",
-        content: "派對",
+        role: 'user',
+        content: '派對',
       },
       {
-        role: "assistant",
-        content: "Bruno Mars - 24K Magic",
+        role: 'assistant',
+        content: 'Bruno Mars - 24K Magic',
       },
       {
-        role: "user",
-        content: "國歌",
+        role: 'user',
+        content: '國歌',
       },
       {
-        role: "assistant",
-        content: "Glocal Orchestra - Taiwan",
+        role: 'assistant',
+        content: 'Glocal Orchestra - Taiwan',
       },
       {
-        role: "user",
-        content: "跳舞",
+        role: 'user',
+        content: '跳舞',
       },
       {
-        role: "assistant",
-        content: "Calvin Harris, Dua Lipa - One Kiss",
+        role: 'assistant',
+        content: 'Calvin Harris, Dua Lipa - One Kiss',
       },
       {
-        role: "user",
-        content: formData.get("description") as string,
+        role: 'user',
+        content: formData.get('description') as string,
       },
     ],
     temperature: 2,
@@ -82,38 +83,40 @@ async function getRecommendSong(formData: FormData) {
     max_tokens: Number(OPENAI_MAX_TOKENS),
   });
 
-  return response.data.choices[0].message?.content ?? "";
+  return response.data.choices[0].message?.content ?? '';
 }
 
 async function getSpotifyToken() {
-  const response = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: `grant_type=client_credentials&client_id=${SPOTIFY_CLIENT_ID}&client_secret=${SPOTIFY_CLIENT_SECRET}`,
   });
   const { access_token } = await response.json();
 
   cookies().set({
-    name: "token",
+    name: 'token',
     value: access_token,
-    path: "/",
+    path: '/',
     maxAge: 120,
+    secure: true,
+    sameSite: 'strict',
   });
 }
 
 async function getSpotifySongId(songName: string) {
-  if (!cookies().get("token")?.value) {
+  if (!cookies().get('token')?.value) {
     await getSpotifyToken();
   }
-  const token = cookies().get("token")?.value;
+  const token = cookies().get('token')?.value;
   const response = await fetch(
-    "https://api.spotify.com/v1/search?q=" + songName + "&type=track&market=TW",
+    'https://api.spotify.com/v1/search?q=' + songName + '&type=track&market=TW',
     {
-      method: "GET",
+      method: 'GET',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     }
@@ -123,54 +126,37 @@ async function getSpotifySongId(songName: string) {
 }
 
 export default function Form() {
-  const cookieStore = cookies();
   async function chatAI(formData: FormData) {
-    "use server";
+    'use server';
     try {
       const song = await getRecommendSong(formData);
       console.log(song);
 
       const id = await getSpotifySongId(song);
-      cookies().set({
-        name: "id",
-        value: id,
-        path: "/",
-        maxAge: 0,
-      });
-      revalidatePath("/");
+      redirect('song/' + id);
     } catch (error) {
+      if (isRedirectError(error)) throw error;
       console.error(error);
     }
   }
-  const id = cookieStore.get("id")?.value;
+
   return (
-    <div>
-      <h1 className="text-center text-green-500 text-4xl font-bold mb-4">
+    <div className='my-auto'>
+      <h1 className='mb-4 text-center text-4xl font-bold text-green-500'>
         AI 音樂推薦
       </h1>
-      <form action={chatAI} className="mb-4 flex flex-col min-w-[354px]">
+      <form action={chatAI} className='mb-4 flex min-w-[354px] flex-col'>
         <input
-          type="text"
-          id="description"
-          name="description"
-          className="mb-2"
-          placeholder="請輸入描述，例如：舞曲 英文 女歌手"
+          type='text'
+          id='description'
+          name='description'
+          className='mb-2'
+          placeholder='請輸入描述，例如：舞曲 英文 女歌手'
         />
-        <button type="submit" className="p-2 bg-slate-400 hover:opacity-80">
+        <button type='submit' className='bg-slate-400 p-2 hover:opacity-80'>
           送出
         </button>
       </form>
-      {id && (
-        <iframe
-          className="rounded-xl"
-          src={`https://open.spotify.com/embed/track/${id}?utm_source=generator`}
-          width="100%"
-          height="352"
-          allowFullScreen
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          loading="lazy"
-        ></iframe>
-      )}
     </div>
   );
 }
